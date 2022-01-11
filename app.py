@@ -11,3 +11,5 @@ browser.get('https://tsdr.uspto.gov/')
 serial_input = browser.find_element(By.ID, 'searchNumber')
 serial_input.send_keys('85931937' + Keys.RETURN)
 
+values = browser.find_elements(By.CLASS_NAME, 'value')
+print(values)
