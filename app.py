@@ -40,7 +40,7 @@ data = {
     'registration_date': registration_date.strip(),
     'application_filing_date': application_filing_date.strip(),
     'mark': mark.strip(),
-    'register': register.strip()
+    'register': register.strip(),
     'status': status.strip(),
     'status_date': status_date.strip(),
     'publication_date': publication_date.strip(),
