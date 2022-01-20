@@ -26,7 +26,7 @@ mark = WebDriverWait(browser, 50).until(EC.visibility_of_element_located((By.XPA
 # Need Mark Image - I will talk to you about this
 register = WebDriverWait(browser, 50).until(EC.visibility_of_element_located((By.XPATH, "//div[@class='key' and text()='Register:']//following-sibling::div[1]"))).get_attribute("innerHTML")
 # Also need TM5 which is listed under "value" and not "key"
-status = WebDriverWait(browser, 50).until(EC.visibility_of_element_located((By.XPATH, "//div[@class='key' and text()='Status']//following-sibling::div[1]"))).get_attribute("innerHTML")
+status = WebDriverWait(browser, 50).until(EC.visibility_of_element_located((By.XPATH, "//div[@class='key' and text()='Status:']//following-sibling::div[1]"))).get_attribute("innerHTML")
 status_date = WebDriverWait(browser, 50).until(EC.visibility_of_element_located((By.XPATH, "//div[@class='key' and text()='Status Date:']//following-sibling::div[1]"))).get_attribute("innerHTML")
 publication_date = WebDriverWait(browser, 50).until(EC.visibility_of_element_located((By.XPATH, "//div[@class='key' and text()='Publication Date:']//following-sibling::div[1]"))).get_attribute("innerHTML")
 stanadrd_character_claim = WebDriverWait(browser, 50).until(EC.visibility_of_element_located((By.XPATH, "//div[@class='key' and text()='Standard Character Claim:']//following-sibling::div[1]"))).get_attribute("innerHTML")
