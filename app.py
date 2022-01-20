@@ -17,6 +17,7 @@ browser.get('https://tsdr.uspto.gov/')
 
 serial_input = browser.find_element(By.ID, 'searchNumber')
 serial_input.send_keys('85931937' + Keys.RETURN)
+WebDriverWait(browser, 20).until(EC.visibility_of_element_located((By.XPATH, "//div[@class='expand_all expanded']"))).click()
 
 registration_date = WebDriverWait(browser, 50).until(EC.visibility_of_element_located((By.XPATH, "//div[@class='key' and text()='Registration Date:']//following-sibling::div[1]"))).get_attribute("innerHTML")
 application_filing_date = WebDriverWait(browser, 50).until(EC.visibility_of_element_located((By.XPATH, "//div[@class='key' and text()='Application Filing Date:']//following-sibling::div[1]"))).get_attribute("innerHTML")
