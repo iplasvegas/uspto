@@ -21,7 +21,7 @@ application_filing_date = WebDriverWait(browser, 20).until(EC.visibility_of_elem
 us_serial_number = WebDriverWait(browser, 20).until(EC.visibility_of_element_located((By.XPATH, "//div[@class='key' and text()='US Serial Number:']//following-sibling::div[1]"))).get_attribute("innerHTML")
 mark = WebDriverWait(browser, 20).until(EC.visibility_of_element_located((By.XPATH, "//div[@class='key' and text()='Mark:']//following-sibling::div[1]"))).get_attribute("innerHTML")
 # Need Mark Image - I will talk to you about this
-register = WebDriverWait(browser, 20).until(EC.visibility_of_element_located((By.XPATH, "//div[@class='key' and text()='Register:']//following-sibling::div[1]"))).get_attribute("innerHTML"))
+register = WebDriverWait(browser, 20).until(EC.visibility_of_element_located((By.XPATH, "//div[@class='key' and text()='Register:']//following-sibling::div[1]"))).get_attribute("innerHTML")
 # Also need TM5 which is listed under "value" and not "key"
 status = WebDriverWait(browser, 20).until(EC.visibility_of_element_located((By.XPATH, "//div[@class='key' and text()='Status']//following-sibling::div[1]"))).get_attribute("innerHTML")
 status_date = WebDriverWait(browser, 20).until(EC.visibility_of_element_located((By.XPATH, "//div[@class='key' and text()='Status Date:']//following-sibling::div[1]"))).get_attribute("innerHTML")
