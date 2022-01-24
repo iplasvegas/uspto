@@ -16,7 +16,7 @@ browser = webdriver.Chrome(ChromeDriverManager().install())  #executable_path='/
 browser.get('https://tsdr.uspto.gov/')
 
 serial_input = browser.find_element(By.ID, 'searchNumber')
-serial_input.send_keys('85931937' + Keys.RETURN)
+serial_input.send_keys('76115468' + Keys.RETURN)
 WebDriverWait(browser, 20).until(EC.visibility_of_element_located((By.XPATH, "//div[@class='expand_all expanded']"))).click()
 
 registration_date = WebDriverWait(browser, 50).until(EC.visibility_of_element_located((By.XPATH, "//div[@class='key' and text()='Registration Date:']//following-sibling::div[1]"))).get_attribute("innerHTML")
