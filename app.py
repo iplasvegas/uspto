@@ -19,24 +19,68 @@ serial_input = browser.find_element(By.ID, 'searchNumber')
 serial_input.send_keys('76115468' + Keys.RETURN)
 WebDriverWait(browser, 20).until(EC.visibility_of_element_located((By.XPATH, "//div[@class='expand_all expanded']"))).click()
 
-registration_date = WebDriverWait(browser, 50).until(EC.visibility_of_element_located((By.XPATH, "//div[@class='key' and text()='Registration Date:']//following-sibling::div[1]"))).get_attribute("innerHTML")
-application_filing_date = WebDriverWait(browser, 50).until(EC.visibility_of_element_located((By.XPATH, "//div[@class='key' and text()='Application Filing Date:']//following-sibling::div[1]"))).get_attribute("innerHTML")
-us_serial_number = WebDriverWait(browser, 50).until(EC.visibility_of_element_located((By.XPATH, "//div[@class='key' and text()='US Serial Number:']//following-sibling::div[1]"))).get_attribute("innerHTML")
-mark = WebDriverWait(browser, 50).until(EC.visibility_of_element_located((By.XPATH, "//div[@class='key' and text()='Mark:']//following-sibling::div[1]"))).get_attribute("innerHTML")
+try:
+    [registration_date = WebDriverWait(browser, 50).until(EC.visibility_of_element_located((By.XPATH, "//div[@class='key' and text()='Registration Date:']//following-sibling::div[1]"))).get_attribute("innerHTML")]
+except Error as e:
+    [save null as a value]
+try:
+    [application_filing_date = WebDriverWait(browser, 50).until(EC.visibility_of_element_located((By.XPATH, "//div[@class='key' and text()='Application Filing Date:']//following-sibling::div[1]"))).get_attribute("innerHTML")]
+except Error as e:
+    [save null as a value]
+try:
+    [us_serial_number = WebDriverWait(browser, 50).until(EC.visibility_of_element_located((By.XPATH, "//div[@class='key' and text()='US Serial Number:']//following-sibling::div[1]"))).get_attribute("innerHTML")]
+except Error as e:
+    [save null as a value]
+try:
+    [mark = WebDriverWait(browser, 50).until(EC.visibility_of_element_located((By.XPATH, "//div[@class='key' and text()='Mark:']//following-sibling::div[1]"))).get_attribute("innerHTML")]
+except Error as e:
+    [save null as a value]
 # Need Mark Image - I will talk to you about this
-register = WebDriverWait(browser, 50).until(EC.visibility_of_element_located((By.XPATH, "//div[@class='key' and text()='Register:']//following-sibling::div[1]"))).get_attribute("innerHTML")
+try:
+    [register = WebDriverWait(browser, 50).until(EC.visibility_of_element_located((By.XPATH, "//div[@class='key' and text()='Register:']//following-sibling::div[1]"))).get_attribute("innerHTML")]
+except Error as e:
+    [save null as a value]
 # Also need TM5 which is listed under "value" and not "key"
-status = WebDriverWait(browser, 50).until(EC.visibility_of_element_located((By.XPATH, "//div[@class='key' and text()='Status:']//following-sibling::div[1]"))).get_attribute("innerHTML")
-status_date = WebDriverWait(browser, 50).until(EC.visibility_of_element_located((By.XPATH, "//div[@class='key' and text()='Status Date:']//following-sibling::div[1]"))).get_attribute("innerHTML")
-publication_date = WebDriverWait(browser, 50).until(EC.visibility_of_element_located((By.XPATH, "//div[@class='key' and text()='Publication Date:']//following-sibling::div[1]"))).get_attribute("innerHTML")
-stanadrd_character_claim = WebDriverWait(browser, 50).until(EC.visibility_of_element_located((By.XPATH, "//div[@class='key' and text()='Standard Character Claim:']//following-sibling::div[1]"))).get_attribute("innerHTML")
-for_ = WebDriverWait(browser, 50).until(EC.visibility_of_element_located((By.XPATH, "//div[@class='key' and text()='For:']//following-sibling::div[1]"))).get_attribute("innerHTML")
-international_classes = WebDriverWait(browser, 50).until(EC.visibility_of_element_located((By.XPATH, "//div[@class='key' and text()='International Class(es):']//following-sibling::div[1]"))).get_attribute("innerHTML")
-owner_name = WebDriverWait(browser, 50).until(EC.visibility_of_element_located((By.XPATH, "//div[@class='key' and text()='Owner Name:']//following-sibling::div[1]"))).get_attribute("innerHTML")
-earliest_date_can_be_filed = WebDriverWait(browser, 50).until(EC.visibility_of_element_located((By.XPATH, "//div[@class='key maintenancekey' and text()='Earliest date §8 can be filed:']//following-sibling::div[1]"))).get_attribute("innerHTML")
-latest_date_filed_w_fee = WebDriverWait(browser, 50).until(EC.visibility_of_element_located((By.XPATH, "//div[@class='key maintenancekey' and text()='Latest date §8 can be filed without paying additional fee:']//following-sibling::div[1]"))).get_attribute("innerHTML")
-latest_date_filed_wo_fee = WebDriverWait(browser, 50).until(EC.visibility_of_element_located((By.XPATH, "//div[@class='key maintenancekey' and text()='Latest date §8 can be filed by paying an additional fee:']//following-sibling::div[1]"))).get_attribute("innerHTML")
-
+try:
+[status = WebDriverWait(browser, 50).until(EC.visibility_of_element_located((By.XPATH, "//div[@class='key' and text()='Status:']//following-sibling::div[1]"))).get_attribute("innerHTML")]
+except Error as e:
+    [save null as a value]
+try:
+    [status_date = WebDriverWait(browser, 50).until(EC.visibility_of_element_located((By.XPATH, "//div[@class='key' and text()='Status Date:']//following-sibling::div[1]"))).get_attribute("innerHTML")]
+except Error as e:
+    [save null as a value]
+try:
+    [publication_date = WebDriverWait(browser, 50).until(EC.visibility_of_element_located((By.XPATH, "//div[@class='key' and text()='Publication Date:']//following-sibling::div[1]"))).get_attribute("innerHTML")]
+except Error as e:
+    [save null as a value]
+try:
+    [stanadrd_character_claim = WebDriverWait(browser, 50).until(EC.visibility_of_element_located((By.XPATH, "//div[@class='key' and text()='Standard Character Claim:']//following-sibling::div[1]"))).get_attribute("innerHTML")]
+except Error as e:
+    [save null as a value]
+try:
+    [for_ = WebDriverWait(browser, 50).until(EC.visibility_of_element_located((By.XPATH, "//div[@class='key' and text()='For:']//following-sibling::div[1]"))).get_attribute("innerHTML")]
+except Error as e:
+    [save null as a value]
+try:
+    [international_classes = WebDriverWait(browser, 50).until(EC.visibility_of_element_located((By.XPATH, "//div[@class='key' and text()='International Class(es):']//following-sibling::div[1]"))).get_attribute("innerHTML")]
+except Error as e:
+    [save null as a value]
+try:
+    [owner_name = WebDriverWait(browser, 50).until(EC.visibility_of_element_located((By.XPATH, "//div[@class='key' and text()='Owner Name:']//following-sibling::div[1]"))).get_attribute("innerHTML")]
+except Error as e:
+    [save null as a value]
+try:
+    [earliest_date_can_be_filed = WebDriverWait(browser, 50).until(EC.visibility_of_element_located((By.XPATH, "//div[@class='key maintenancekey' and text()='Earliest date §8 can be filed:']//following-sibling::div[1]"))).get_attribute("innerHTML")]
+except Error as e:
+    [save null as a value]
+try:
+    [latest_date_filed_w_fee = WebDriverWait(browser, 50).until(EC.visibility_of_element_located((By.XPATH, "//div[@class='key maintenancekey' and text()='Latest date §8 can be filed without paying additional fee:']//following-sibling::div[1]"))).get_attribute("innerHTML")]
+except Error as e:
+    [save null as a value]
+try:
+    [latest_date_filed_wo_fee = WebDriverWait(browser, 50).until(EC.visibility_of_element_located((By.XPATH, "//div[@class='key maintenancekey' and text()='Latest date §8 can be filed by paying an additional fee:']//following-sibling::div[1]"))).get_attribute("innerHTML")]
+except Error as e:
+    [save null as a value]
 
 
 data = {
