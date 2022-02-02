@@ -81,21 +81,28 @@ for index,row in df.iterrows():
         owner_name = wait.until(EC.visibility_of_element_located((By.XPATH, "//div[@class='key' and text()='Owner Name:']//following-sibling::div[1]"))).get_attribute("innerHTML")
     except TimeoutException:
         owner_name = "N/A"
-    try:
-        earliest_date_can_be_filed = wait.until(EC.visibility_of_element_located((By.XPATH, "//div[@class='key maintenancekey' and text()='Earliest date §8 can be filed:']//following-sibling::div[1]"))).get_attribute("innerHTML")
-        earliest_date_can_be_filed = earliest_date_can_be_filed.replace('.','')
-    except TimeoutException:
-        earliest_date_can_be_filed = "N/A"
-    try:
-        latest_date_filed_w_fee = wait.until(EC.visibility_of_element_located((By.XPATH, "//div[@class='key maintenancekey' and text()='Latest date §8 can be filed without paying additional fee:']//following-sibling::div[1]"))).get_attribute("innerHTML")
-        latest_date_filed_w_fee = latest_date_filed_w_fee.replace('.','')
-    except TimeoutException:
-        latest_date_filed_w_fee = "N/A"
-    try:
-        latest_date_filed_wo_fee = wait.until(EC.visibility_of_element_located((By.XPATH, "//div[@class='key maintenancekey' and text()='Latest date §8 can be filed by paying an additional fee:']//following-sibling::div[1]"))).get_attribute("innerHTML")
-        latest_date_filed_wo_fee =latest_date_filed_wo_fee.replace('.','')
-    except TimeoutException:
-        latest_date_filed_wo_fee = "N/A"
+    #try:
+    #    earliest_date_can_be_filed = wait.until(EC.visibility_of_element_located((By.XPATH, "//div[@class='key maintenancekey' and text()='Earliest date §8 can be filed:']//following-sibling::div[1]"))).get_attribute("innerHTML")
+    #    earliest_date_can_be_filed = earliest_date_can_be_filed.replace('.','')
+    #except TimeoutException:
+    #    earliest_date_can_be_filed = "N/A"
+    #try:
+    #    latest_date_filed_w_fee = wait.until(EC.visibility_of_element_located((By.XPATH, "//div[@class='key maintenancekey' and text()='Latest date §8 can be filed without paying additional fee:']//following-sibling::div[1]"))).get_attribute("innerHTML")
+    #    latest_date_filed_w_fee = latest_date_filed_w_fee.replace('.','')
+    #except TimeoutException:
+    #    latest_date_filed_w_fee = "N/A"
+    #try:
+    #    latest_date_filed_wo_fee = wait.until(EC.visibility_of_element_located((By.XPATH, "//div[@class='key maintenancekey' and text()='Latest date §8 can be filed by paying an additional fee:']//following-sibling::div[1]"))).get_attribute("innerHTML")
+    #    latest_date_filed_wo_fee =latest_date_filed_wo_fee.replace('.','')
+    #except TimeoutException:
+    #    latest_date_filed_wo_fee = "N/A"
+    #    if standard_character_claim == 'Yes. The mark consists of standard characters without claim to any particular font style, size, or color.':
+    #       mark_image = "N/A"
+    #    else:
+    #        img = wait.until(EC.visibility_of_element_located((By.XPath, '//div[@id="markImage"]/img')))
+    #        src = img.getattribute('src')
+    #        urllib.urlretrieve(src, +mark+"_image.png")
+    #        mark_image = ""+mark+"_image.png"
 
 
     data = {
@@ -111,16 +118,17 @@ for index,row in df.iterrows():
         'for_': for_.strip(),
         'international_classes': international_classes.strip().replace('\n', ' '),
         'owner_name': owner_name.strip(),
-        'earliest_date_can_be_filed': earliest_date_can_be_filed.strip(),
-        'latest_date_filed_w_fee': latest_date_filed_w_fee.strip(),
-        'latest_date_filed_wo_fee': latest_date_filed_wo_fee.strip(),
+        #'earliest_date_can_be_filed': earliest_date_can_be_filed.strip(),
+        #'latest_date_filed_w_fee': latest_date_filed_w_fee.strip(),
+        #'latest_date_filed_wo_fee': latest_date_filed_wo_fee.strip(),
+        #'mark_image': mark_image.strip(),
     }
     print(data)
     data_list.append(data)
     browser.close()
 
 # Convert to pd.df
-data_for_csv = pd.DataFrame(data_list)
+data_for_excel = pd.DataFrame(data_list)
 
-# Output the csv to the path
-data_for_csv.to_csv('outputs.csv', index=False)
+# Output the excel to the path
+data_for_excel.to_excel('outputs.xlsx', index=False)
