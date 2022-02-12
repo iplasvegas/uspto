@@ -8,13 +8,23 @@ from selenium.common.exceptions import TimeoutException
 from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.common.by import By
 from selenium.webdriver.support import expected_conditions as EC
-
+import urllib.request
+from PIL import Image
 import pandas as pd
+import xlsxwriter
+import re
 
 # Feed a list of search numbers from the csv
 df = pd.read_csv('serial_nums.csv')
 # Initialize an empty list for us to add dictionaries of values to which will turn into a pandas df later
 data_list = []
+
+# Create outputs workbook
+workbook = xlsxwriter.Workbook('outputs.xlsx')
+worksheet = workbook.add_worksheet()
+
+# set a counter for the column headers
+counter = 1
 
 for index,row in df.iterrows():
 
@@ -104,12 +114,21 @@ for index,row in df.iterrows():
     #        urllib.urlretrieve(src, +mark+"_image.png")
     #        mark_image = ""+mark+"_image.png"
 
+    # Grab image
+    image_name = re.sub('[^A-Za-z0-9]+', '', mark)
+    try:
+        img = wait.until(EC.visibility_of_element_located((By.XPATH, "//img[@id='markImage']")))
+        src = img.get_attribute('src')
+        urllib.request.urlretrieve(src, "images/"+image_name+".png")
+    except TimeoutException:
+        pass
 
     data = {
         'serial_number': str(row[0]),
         'registration_date': registration_date.strip(),
         'application_filing_date': application_filing_date.strip(),
         'mark': mark.strip(),
+        'image_name': image_name,
         'register': register.strip(),
         'status': status.strip(),
         'status_date': status_date.strip(),
@@ -123,12 +142,36 @@ for index,row in df.iterrows():
         #'latest_date_filed_wo_fee': latest_date_filed_wo_fee.strip(),
         #'mark_image': mark_image.strip(),
     }
+
     print(data)
     data_list.append(data)
     browser.close()
 
-# Convert to pd.df
-data_for_excel = pd.DataFrame(data_list)
+    # Set the column variable names.
+    # This is mean to be flexible to accomodate a variable number of column names in the future
+    if counter == 1:
+        column_names = list(data.keys())
+        for column_number, name in enumerate(column_names):
+            worksheet.write(0, column_number, name)
+        # add image column name
+        worksheet.write(0, len(list(data.keys()))+1, 'image')
 
-# Output the excel to the path
-data_for_excel.to_excel('outputs.xlsx', index=False)
+    # Set the actual data into the columns
+    trademark_data = list(data.values())
+    for column, trademark in enumerate(trademark_data):
+        worksheet.write(counter, column, trademark)
+    worksheet.insert_image(counter, len(list(data.keys()))+1, 'images/'+image_name+'.png', {'object_position': 1})
+
+    # Set height of the row so its not awkward and squished
+    img = Image.open('images/'+image_name+'.png')
+    height = img.height
+    worksheet.set_row(counter, height)
+
+    # Increase counter by 1
+    counter += 1
+
+
+workbook.close()
+
+
+
