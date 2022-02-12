@@ -27,10 +27,10 @@ worksheet = workbook.add_worksheet()
 counter = 1
 
 for index,row in df.iterrows():
-
+    serial_number_string = str(row[0])
     # Connect webdriver to chrome and open the website
     browser = webdriver.Chrome(ChromeDriverManager().install())  #executable_path='/Users/kevinjay/projects/gecko/chromedriver.exe')
-    browser.get("https://tsdr.uspto.gov/#caseNumber="+str(row[0])+"&caseSearchType=US_APPLICATION&caseType=DEFAULT&searchType=statusSearch")
+    browser.get("https://tsdr.uspto.gov/#caseNumber="+serial_number_string+"&caseSearchType=US_APPLICATION&caseType=DEFAULT&searchType=statusSearch")
 
     wait = WebDriverWait(browser, 10)
 
@@ -62,7 +62,7 @@ for index,row in df.iterrows():
         register = "N/A"
     # Also need TM5 which is listed under "value" and not "key"
     try:
-        status = wait.until(EC.visibility_of_element_located((By.XPATH, "//div[@class='key' and text()='Status']//following-sibling::div[1]"))).get_attribute("innerHTML")
+        status = wait.until(EC.visibility_of_element_located((By.XPATH, "//div[@class='key' and text()='Status:']//following-sibling::div[1]"))).get_attribute("innerHTML")
     except TimeoutException:
         status = "N/A"
     try:
@@ -91,44 +91,57 @@ for index,row in df.iterrows():
         owner_name = wait.until(EC.visibility_of_element_located((By.XPATH, "//div[@class='key' and text()='Owner Name:']//following-sibling::div[1]"))).get_attribute("innerHTML")
     except TimeoutException:
         owner_name = "N/A"
-    #try:
-    #    earliest_date_can_be_filed = wait.until(EC.visibility_of_element_located((By.XPATH, "//div[@class='key maintenancekey' and text()='Earliest date §8 can be filed:']//following-sibling::div[1]"))).get_attribute("innerHTML")
-    #    earliest_date_can_be_filed = earliest_date_can_be_filed.replace('.','')
-    #except TimeoutException:
-    #    earliest_date_can_be_filed = "N/A"
-    #try:
-    #    latest_date_filed_w_fee = wait.until(EC.visibility_of_element_located((By.XPATH, "//div[@class='key maintenancekey' and text()='Latest date §8 can be filed without paying additional fee:']//following-sibling::div[1]"))).get_attribute("innerHTML")
-    #    latest_date_filed_w_fee = latest_date_filed_w_fee.replace('.','')
-    #except TimeoutException:
-    #    latest_date_filed_w_fee = "N/A"
-    #try:
-    #    latest_date_filed_wo_fee = wait.until(EC.visibility_of_element_located((By.XPATH, "//div[@class='key maintenancekey' and text()='Latest date §8 can be filed by paying an additional fee:']//following-sibling::div[1]"))).get_attribute("innerHTML")
-    #    latest_date_filed_wo_fee =latest_date_filed_wo_fee.replace('.','')
-    #except TimeoutException:
-    #    latest_date_filed_wo_fee = "N/A"
-    #    if standard_character_claim == 'Yes. The mark consists of standard characters without claim to any particular font style, size, or color.':
-    #       mark_image = "N/A"
-    #    else:
-    #        img = wait.until(EC.visibility_of_element_located((By.XPath, '//div[@id="markImage"]/img')))
-    #        src = img.getattribute('src')
-    #        urllib.urlretrieve(src, +mark+"_image.png")
-    #        mark_image = ""+mark+"_image.png"
 
     # Grab image
-    image_name = re.sub('[^A-Za-z0-9]+', '', mark)
     try:
         img = wait.until(EC.visibility_of_element_located((By.XPATH, "//img[@id='markImage']")))
         src = img.get_attribute('src')
-        urllib.request.urlretrieve(src, "images/"+image_name+".png")
+        urllib.request.urlretrieve(src, "images/"+serial_number_string+".png")
     except TimeoutException:
         pass
 
+    # Open maintenance tab
+    maintenance_tab = wait.until(EC.visibility_of_element_located((By.LINK_TEXT, "MAINTENANCE")))
+    maintenance_tab.click()
+
+    date_list = browser.find_elements(By.CSS_SELECTOR, 'div.value.maintenanceValue')
+
+    if len(date_list) == 0:
+        declaration = 'N/A'
+        earliest_date_can_be_filed = 'N/A'
+        latest_date_filed_wo_fee = 'N/A'
+        latest_date_filed_w_fee = 'N/A'
+    elif len(date_list) == 1:
+        declaration = 'N/A'
+        earliest_date_can_be_filed = 'N/A'
+        latest_date_filed_wo_fee = 'N/A'
+        latest_date_filed_w_fee = date_list[0].get_attribute('innerHTML').replace('.','')
+    elif len(date_list) == 2:
+        declaration = 'N/A'
+        earliest_date_can_be_filed = 'N/A'
+        latest_date_filed_wo_fee = date_list[0].get_attribute('innerHTML').replace('.','')
+        latest_date_filed_w_fee = date_list[1].get_attribute('innerHTML').replace('.','')
+    elif len(date_list) == 3:
+        declaration = 'N/A'
+        earliest_date_can_be_filed = date_list[0].get_attribute('innerHTML').replace('.','')
+        latest_date_filed_wo_fee = date_list[1].get_attribute('innerHTML').replace('.','')
+        latest_date_filed_w_fee = date_list[2].get_attribute('innerHTML').replace('.','')
+    elif len(date_list) == 4:
+        declaration = date_list[0].get_attribute('innerHTML').replace('.','')
+        earliest_date_can_be_filed = date_list[1].get_attribute('innerHTML').replace('.','')
+        latest_date_filed_wo_fee = date_list[2].get_attribute('innerHTML').replace('.','')
+        latest_date_filed_w_fee = date_list[3].get_attribute('innerHTML').replace('.','')
+    else:
+        print('RUH ROH RAGGY theres too many dates, check serial number: ' + serial_number_string)
+        raise AttributeError
+
+
+
     data = {
-        'serial_number': str(row[0]),
+        'serial_number': serial_number_string,
         'registration_date': registration_date.strip(),
         'application_filing_date': application_filing_date.strip(),
         'mark': mark.strip(),
-        'image_name': image_name,
         'register': register.strip(),
         'status': status.strip(),
         'status_date': status_date.strip(),
@@ -137,10 +150,10 @@ for index,row in df.iterrows():
         'for_': for_.strip(),
         'international_classes': international_classes.strip().replace('\n', ' '),
         'owner_name': owner_name.strip(),
-        #'earliest_date_can_be_filed': earliest_date_can_be_filed.strip(),
-        #'latest_date_filed_w_fee': latest_date_filed_w_fee.strip(),
-        #'latest_date_filed_wo_fee': latest_date_filed_wo_fee.strip(),
-        #'mark_image': mark_image.strip(),
+        'earliest_date_can_be_filed': earliest_date_can_be_filed.strip(),
+        'latest_date_filed_wo_fee': latest_date_filed_wo_fee.strip(),
+        'latest_date_filed_w_fee': latest_date_filed_w_fee.strip(),
+        'declaration': declaration.replace('<br>', ' ').replace('\n                            ', '').strip(),
     }
 
     print(data)
@@ -160,10 +173,10 @@ for index,row in df.iterrows():
     trademark_data = list(data.values())
     for column, trademark in enumerate(trademark_data):
         worksheet.write(counter, column, trademark)
-    worksheet.insert_image(counter, len(list(data.keys()))+1, 'images/'+image_name+'.png', {'object_position': 1})
+    worksheet.insert_image(counter, len(list(data.keys()))+1, 'images/'+serial_number_string+'.png', {'object_position': 1})
 
     # Set height of the row so its not awkward and squished
-    img = Image.open('images/'+image_name+'.png')
+    img = Image.open('images/'+serial_number_string+'.png')
     height = img.height
     worksheet.set_row(counter, height)
 
