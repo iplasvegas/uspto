@@ -101,40 +101,45 @@ for index,row in df.iterrows():
         pass
 
     # Open maintenance tab
-    maintenance_tab = wait.until(EC.visibility_of_element_located((By.LINK_TEXT, "MAINTENANCE")))
-    maintenance_tab.click()
+    try:
+        maintenance_tab = wait.until(EC.visibility_of_element_located((By.LINK_TEXT, "MAINTENANCE")))
+        maintenance_tab.click()
 
-    date_list = browser.find_elements(By.CSS_SELECTOR, 'div.value.maintenanceValue')
+        date_list = browser.find_elements(By.CSS_SELECTOR, 'div.value.maintenanceValue')
 
-    if len(date_list) == 0:
+        if len(date_list) == 0:
+            declaration = 'N/A'
+            earliest_date_can_be_filed = 'N/A'
+            latest_date_filed_wo_fee = 'N/A'
+            latest_date_filed_w_fee = 'N/A'
+        elif len(date_list) == 1:
+            declaration = 'N/A'
+            earliest_date_can_be_filed = 'N/A'
+            latest_date_filed_wo_fee = 'N/A'
+            latest_date_filed_w_fee = date_list[0].get_attribute('innerHTML').replace('.','')
+        elif len(date_list) == 2:
+            declaration = 'N/A'
+            earliest_date_can_be_filed = 'N/A'
+            latest_date_filed_wo_fee = date_list[0].get_attribute('innerHTML').replace('.','')
+            latest_date_filed_w_fee = date_list[1].get_attribute('innerHTML').replace('.','')
+        elif len(date_list) == 3:
+            declaration = 'N/A'
+            earliest_date_can_be_filed = date_list[0].get_attribute('innerHTML').replace('.','')
+            latest_date_filed_wo_fee = date_list[1].get_attribute('innerHTML').replace('.','')
+            latest_date_filed_w_fee = date_list[2].get_attribute('innerHTML').replace('.','')
+        elif len(date_list) == 4:
+            declaration = date_list[0].get_attribute('innerHTML').replace('.','')
+            earliest_date_can_be_filed = date_list[1].get_attribute('innerHTML').replace('.','')
+            latest_date_filed_wo_fee = date_list[2].get_attribute('innerHTML').replace('.','')
+            latest_date_filed_w_fee = date_list[3].get_attribute('innerHTML').replace('.','')
+        else:
+            print('RUH ROH RAGGY theres too many dates, check serial number: ' + serial_number_string)
+            raise AttributeError
+    except TimeoutException:
         declaration = 'N/A'
         earliest_date_can_be_filed = 'N/A'
         latest_date_filed_wo_fee = 'N/A'
         latest_date_filed_w_fee = 'N/A'
-    elif len(date_list) == 1:
-        declaration = 'N/A'
-        earliest_date_can_be_filed = 'N/A'
-        latest_date_filed_wo_fee = 'N/A'
-        latest_date_filed_w_fee = date_list[0].get_attribute('innerHTML').replace('.','')
-    elif len(date_list) == 2:
-        declaration = 'N/A'
-        earliest_date_can_be_filed = 'N/A'
-        latest_date_filed_wo_fee = date_list[0].get_attribute('innerHTML').replace('.','')
-        latest_date_filed_w_fee = date_list[1].get_attribute('innerHTML').replace('.','')
-    elif len(date_list) == 3:
-        declaration = 'N/A'
-        earliest_date_can_be_filed = date_list[0].get_attribute('innerHTML').replace('.','')
-        latest_date_filed_wo_fee = date_list[1].get_attribute('innerHTML').replace('.','')
-        latest_date_filed_w_fee = date_list[2].get_attribute('innerHTML').replace('.','')
-    elif len(date_list) == 4:
-        declaration = date_list[0].get_attribute('innerHTML').replace('.','')
-        earliest_date_can_be_filed = date_list[1].get_attribute('innerHTML').replace('.','')
-        latest_date_filed_wo_fee = date_list[2].get_attribute('innerHTML').replace('.','')
-        latest_date_filed_w_fee = date_list[3].get_attribute('innerHTML').replace('.','')
-    else:
-        print('RUH ROH RAGGY theres too many dates, check serial number: ' + serial_number_string)
-        raise AttributeError
-
 
 
     data = {
