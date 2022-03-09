@@ -15,8 +15,9 @@ import xlsxwriter
 import re
 import datetime
 from datetime import datetime
-from docx import Document
+# from docx import Document
 from icalendar import Calendar, Event
+from os.path import exists
 
 
 # Feed a list of search numbers from the csv
@@ -114,7 +115,7 @@ for index,row in df.iterrows():
         src = img.get_attribute('src')
         urllib.request.urlretrieve(src, "images/"+serial_number_string+".png")
     except TimeoutException:
-        "images/" + serial_number_string + ".png" == "N/A"
+        pass
 
     # Open maintenance tab
     try:
@@ -211,18 +212,21 @@ for index,row in df.iterrows():
 
     # Set the column variable names.
     # This is meant to be flexible to accomodate a variable number of column names in the future
-    if "images/"+serial_number_string+".png" != "N/A":
-        if counter == 1:
-            column_names = list(data.keys())
-            for column_number, name in enumerate(column_names):
-                worksheet.write(0, column_number, name)
-            # add image column name
-            worksheet.write(0, len(list(data.keys()))+1, 'image')
 
-        # Set the actual data into the columns
-        trademark_data = list(data.values())
-        for column, trademark in enumerate(trademark_data):
-            worksheet.write(counter, column, trademark)
+    if counter == 1:
+        column_names = list(data.keys())
+        for column_number, name in enumerate(column_names):
+            worksheet.write(0, column_number, name)
+        # add image column name
+        worksheet.write(0, len(list(data.keys()))+1, 'image')
+
+    # Set the actual data into the columns
+    trademark_data = list(data.values())
+    for column, trademark in enumerate(trademark_data):
+        worksheet.write(counter, column, trademark)
+
+    # See if the path exists or not. If yes then look for img and add it, else nothing it will skip
+    if exists("images/" + serial_number_string + ".png"):
         worksheet.insert_image(counter, len(list(data.keys()))+1, 'images/'+serial_number_string+'.png', {'object_position': 1})
 
         # Set height of the row so its not awkward and squished
@@ -230,8 +234,8 @@ for index,row in df.iterrows():
         height = img.height
         worksheet.set_row(counter, height)
 
-        # Increase counter by 1
-        counter += 1
+    # Increase counter by 1
+    counter += 1
 
 
 workbook.close()
