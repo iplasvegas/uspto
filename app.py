@@ -11,13 +11,16 @@ from selenium.webdriver.support import expected_conditions as EC
 import urllib.request
 from PIL import Image
 import pandas as pd
+from pandas.tseries.offsets import *
 import xlsxwriter
-import re
-import datetime
-from datetime import datetime
-# from docx import Document
-from icalendar import Calendar, Event
+import vobject
+from datetime import datetime, date, timedelta
+import datetime as dt
+from docx import Document
+# from icalendar import Calendar, Event
 from os.path import exists
+from dateutil.relativedelta import relativedelta
+import holidays
 
 
 # Feed a list of search numbers from the csv
@@ -28,7 +31,21 @@ data_list = []
 # Create outputs workbook and calendar
 workbook = xlsxwriter.Workbook('outputs.xlsx')
 worksheet = workbook.add_worksheet()
-cal = Calendar()
+# cal = Calendar()
+#ical = vobject.iCalendar()
+#ical.add('x-wr-calname').value = u"TM Calendar"
+#ical.add('x-wr-caldesc').value = u"A calendar of TM data scraped"
+
+cal = vobject.iCalendar()
+
+ONE_DAY = timedelta(days=1)
+HOLIDAYS_US = holidays.US()
+
+#def next_business_day():
+#    next_day = datetime.date.datetime_object_raw + ONE_DAY
+#    while next_day.weekday() in holidays.WEEKEND or next_day in HOLIDAYS_US:
+#        next_day += ONE_DAY
+#    return next_day
 
 # set a counter for the column headers
 counter = 1
@@ -60,6 +77,11 @@ for index,row in df.iterrows():
         application_filing_date = application_filing_date.replace('.','')
     except TimeoutException:
         application_filing_date = "N/A"
+    try:
+        allowance_date = wait.until(EC.visibility_of_element_located((By.XPATH, "//div[@class='key' and text()='Notice of Allowance Date:']//following-sibling::div[1]"))).get_attribute("innerHTML")
+        allowance_date = allowance_date.replace('.','')
+    except TimeoutException:
+        allowance_date = "N/A"
     try:
         us_serial_number = wait.until(EC.visibility_of_element_located((By.XPATH, "//div[@class='key' and text()='US Serial Number:']//following-sibling::div[1]"))).get_attribute("innerHTML")
     except TimeoutException:
@@ -176,6 +198,7 @@ for index,row in df.iterrows():
         'registration_date': registration_date.strip(),
         'us_registration_number': us_registration_number.strip(),
         'application_filing_date': application_filing_date.strip(),
+        'allowance_date': allowance_date.strip(),
         'mark': mark.strip(),
         'register': register.strip(),
         'status': status.strip(),
@@ -192,19 +215,226 @@ for index,row in df.iterrows():
         'declaration_of_incontestability': declaration_of_incontestability.strip(),
     }
 
-    # Write to .ics file
- #   if data['earliest_date_can_be_filed'] is not 'N/A':
- #       event = Event()
+# Write to .ics file
+    if data['earliest_date_can_be_filed'] != 'N/A':
+        try:
+            datetime_str_a = data['earliest_date_can_be_filed']
+            datetime_object_a = datetime.strptime(datetime_str_a, '%b %d, %Y')
 
-        # convert to timestamp
- #       datetime_str = data['earliest_date_can_be_filed']
-  #      datetime_object = datetime.strptime(datetime_str, '%b %d, %Y')
+            event_a = vobject.newFromBehavior('vevent')
 
-   #     event.add = ('summary', data['mark']+': Renewal filing period opens')
-    #    event.add = ('dstart', 'datetime_object')
-     #   event.add = ('description', 'This is the opening of the renewal period for the mark '+data['mark']+'with registration number '+data['us_registration_number'])
-      ## cal.add_component(event)
+            event_a.add('dtstart').value = datetime_object_a
+            event_a.add('summary').value = data['mark']+": Renewal filing period opens"
+            event_a.add('description').value = "This is the opening of the renewal period for the mark "+data['mark']+"with registration number "+data['us_registration_number']
+            event_a.add('location').value = "https://tsdr.uspto.gov/#caseNumber="+serial_number_string+"&caseSearchType=US_APPLICATION&caseType=DEFAULT&searchType=statusSearch"
 
+            cal.add(event_a)
+        except ValueError:
+            pass
+
+    if data['latest_date_filed_wo_fee'] != 'N/A':
+        try:
+            datetime_str_b = data['latest_date_filed_wo_fee']
+            datetime_object_b = datetime.strptime(datetime_str_b, '%b %d, %Y')
+
+
+            event_b = vobject.newFromBehavior('vevent')
+
+            event_b.add('dtstart').value = datetime_object_b
+            event_b.add('summary').value = data['mark']+": Renewal filing period closes and the grace period opens"
+            event_b.add('description').value = "This is the close of the renewal period and opening of the renewal grace period for the mark "+data['mark']+"with registration number "+data['us_registration_number']
+            event_b.add('location').value = "https://tsdr.uspto.gov/#caseNumber="+serial_number_string+"&caseSearchType=US_APPLICATION&caseType=DEFAULT&searchType=statusSearch"
+
+            cal.add(event_b)
+        except ValueError:
+            pass
+
+    if data['latest_date_filed_w_fee'] != 'N/A':
+        try:
+            datetime_str_c = data['latest_date_filed_w_fee']
+            datetime_object_c = datetime.strptime(datetime_str_c, '%b %d, %Y')
+
+
+            event_c = vobject.newFromBehavior('vevent')
+
+            event_c.add('dtstart').value = datetime_object_c
+            event_c.add('summary').value = data['mark']+": Renewal grace period close"
+            event_c.add('description').value = "This is the close of the grace period for the mark "+data['mark']+"with registration number "+data['us_registration_number']
+            event_c.add('location').value = "https://tsdr.uspto.gov/#caseNumber="+serial_number_string+"&caseSearchType=US_APPLICATION&caseType=DEFAULT&searchType=statusSearch"
+
+            cal.add(event_c)
+        except ValueError:
+            pass
+
+    if 'Applicant must file a Statement of Use or Extension Request ' in data['status']:
+
+        datetime_str = data['status_date']
+        datetime_object = datetime.strptime(datetime_str, '%b %d, %Y') + relativedelta(months=6)
+
+        event = vobject.newFromBehavior('vevent')
+
+        event.add('dtstart').value = datetime_object
+        event.add('summary').value = "A Statement of Use or the first request for extension for the mark " + data[
+            'mark'] + "  with serial number: " + data['serial_number'] + " is due today"
+        event.add('description').value = "Today marks the sixth month deadline to respond to a Notice of Allowance for the mark " + data['mark'] + "  with serial number " + data['serial_number'] + " \n \nInformation about " + data['mark'] + " \n ~Publication Date: " + data['publication_date'] + " \n ~Current Status: " + data['status'] + "\n ~Class(es): " + data['international_classes'] + "\n ~Goods and Service: " + data['for_'] + "\n ~Client: " + data['owner_name']
+        event.add('location').value = "https://tsdr.uspto.gov/#caseNumber=" + serial_number_string + "&caseSearchType=US_APPLICATION&caseType=DEFAULT&searchType=statusSearch"
+
+        cal.add(event)
+
+    if 'non-final Office action' in data['status']:
+
+        datetime_str = data['status_date']
+        datetime_object = datetime.strptime(datetime_str, '%b %d, %Y') + relativedelta(months=6)
+
+        event = vobject.newFromBehavior('vevent')
+
+        event.add('dtstart').value = datetime_object
+        event.add('summary').value = "An outgoing office action for the mark " + data['mark'] + "  with serial number: " + data['serial_number'] + " was  sent on " + data['status_date'] + " and therefore a response to that office action is due today"
+        event.add('description').value = "Today is the final day to file a response to an office action for the mark " + data['mark'] + "  with serial number " + data['serial_number'] + " since the USPTO provided notice that ~" + data['status'] + "~  on " + data['status_date'] + "\n \nInformation about " + data['mark'] + " \n ~Publication Date: " + data['publication_date'] + " \n ~Current Status: " + data['status'] + "\n ~Class(es): " + data['international_classes'] + "\n ~Goods and Service: " + data['for_'] + "\n ~Client: " + data['owner_name']
+        event.add('location').value = "https://tsdr.uspto.gov/#caseNumber=" + serial_number_string + "&caseSearchType=US_APPLICATION&caseType=DEFAULT&searchType=statusSearch"
+
+        cal.add(event)
+
+    if 'final Office action refusing registration has been sent' in data['status']:
+
+        datetime_str = data['status_date']
+        datetime_object = datetime.strptime(datetime_str, '%b %d, %Y') + relativedelta(months=6)
+
+        event = vobject.newFromBehavior('vevent')
+
+        event.add('dtstart').value = datetime_object
+        event.add('summary').value = "A request for reconsideration for the mark: " + data['mark'] + "  with serial number: " + data['serial_number'] + " was  sent on " + data['status_date'] + " and is therefore due today"
+        event.add('description').value = "Today is the final day to file a request for reconsideration for the mark " + data['mark'] + "  with serial number " + data['serial_number'] + " since the status update " + data['status'] + " was entered by the USPTO on " + data['status_date'] + "\n \nInformation about " + data['mark'] + " \n ~Publication Date: " + data['publication_date'] + " \n ~Current Status: " + data['status'] + "\n ~Class(es): " + data['international_classes'] + "\n ~Goods and Service: " + data['for_'] + "\n ~Client: " + data['owner_name']
+        event.add('location').value = "https://tsdr.uspto.gov/#caseNumber=" + serial_number_string + "&caseSearchType=US_APPLICATION&caseType=DEFAULT&searchType=statusSearch"
+
+        cal.add(event)
+
+
+    if 'first request for extension of time' in data['status']:
+        datetime_str = data['allowance_date']
+        datetime_object = datetime.strptime(datetime_str, '%b %d, %Y') + relativedelta(months=12)
+
+        event = vobject.newFromBehavior('vevent')
+
+        event.add('dtstart').value = datetime_object
+        event.add('summary').value = "A Statement of Use or the second request for extension for the mark " + data[
+            'mark'] + "  with serial number: " + data['serial_number'] + " is due today"
+        event.add('description').value = "Today is the due date for a Statement of Use or the second request for extension for the mark " + \
+                                         data['mark'] + "  with serial number " + data[
+                                             'serial_number'] + " since the USPTO provided notice that ~" + data[
+                                             'status'] + "~  was provided on the date " + data['status_date'] + "\n \nInformation about " + \
+                                         data['mark'] + " \n ~Notice of allowance first issued on: " + data[
+                                             'allowance_date'] + " \n ~Current Status: " + data[
+                                             'status'] + "\n ~Class(es): " + data[
+                                             'international_classes'] + "\n ~Goods and Service: " + data[
+                                             'for_'] + "\n ~Client: " + data['owner_name']
+        event.add('location').value = "https://tsdr.uspto.gov/#caseNumber=" + serial_number_string + "&caseSearchType=US_APPLICATION&caseType=DEFAULT&searchType=statusSearch"
+
+        cal.add(event)
+
+    if 'second request for extension of time' in data['status']:
+        datetime_str = data['allowance_date']
+        datetime_object = datetime.strptime(datetime_str, '%b %d, %Y') + relativedelta(months=18)
+
+        event = vobject.newFromBehavior('vevent')
+
+        event.add('dtstart').value = datetime_object
+        event.add('summary').value = "A Statement of Use or the third request for extension for the mark " + data[
+            'mark'] + "  with serial number: " + data['serial_number'] + " is due today"
+        event.add(
+            'description').value = "Today is the due date for a Statement of Use or the third request for extension for the mark " + \
+                                    data['mark'] + "  with serial number " + data[
+                                           'serial_number'] + " since the USPTO provided notice that ~" + data[
+                                           'status'] + "~  was provided on the date " + data[
+                                           'status_date'] + "\n \nInformation about " + \
+                                    data['mark'] + " \n ~Notice of allowance first issued on: " + data[
+                                           'allowance_date'] + " \n ~Current Status: " + data[
+                                           'status'] + "\n ~Class(es): " + data[
+                                           'international_classes'] + "\n ~Goods and Service: " + data[
+                                           'for_'] + "\n ~Client: " + data['owner_name']
+        event.add(
+                'location').value = "https://tsdr.uspto.gov/#caseNumber=" + serial_number_string + "&caseSearchType=US_APPLICATION&caseType=DEFAULT&searchType=statusSearch"
+
+        cal.add(event)
+
+    if 'third request for extension of time' in data['status']:
+        datetime_str = data['allowance_date']
+        datetime_object = datetime.strptime(datetime_str, '%b %d, %Y') + relativedelta(months=24)
+
+        event = vobject.newFromBehavior('vevent')
+
+        event.add('dtstart').value = datetime_object
+        event.add('summary').value = "A Statement of Use or the fourth request for extension for the mark " + \
+                                     data[
+                                         'mark'] + "  with serial number: " + data[
+                                         'serial_number'] + " is due today"
+        event.add(
+            'description').value = "Today is the due date for a Statement of Use or the fourth request for extension for the mark " + \
+                                   data['mark'] + "  with serial number " + data[
+                                       'serial_number'] + " since the USPTO provided notice that ~" + data[
+                                       'status'] + "~  was provided on the date " + data[
+                                       'status_date'] + "\n \nInformation about " + \
+                                   data['mark'] + " \n ~Notice of allowance first issued on: " + data[
+                                       'allowance_date'] + " \n ~Current Status: " + data[
+                                       'status'] + "\n ~Class(es): " + data[
+                                       'international_classes'] + "\n ~Goods and Service: " + data[
+                                       'for_'] + "\n ~Client: " + data['owner_name']
+        event.add(
+            'location').value = "https://tsdr.uspto.gov/#caseNumber=" + serial_number_string + "&caseSearchType=US_APPLICATION&caseType=DEFAULT&searchType=statusSearch"
+
+        cal.add(event)
+
+    if 'fourth request for extension of time' in data['status']:
+        datetime_str = data['allowance_date']
+        datetime_object = datetime.strptime(datetime_str, '%b %d, %Y') + relativedelta(months=24)
+
+        event = vobject.newFromBehavior('vevent')
+
+        event.add('dtstart').value = datetime_object
+        event.add('summary').value = "A Statement of Use or the fifth (and final) request for extension for the mark " + \
+                                     data[
+                                         'mark'] + "  with serial number: " + data[
+                                         'serial_number'] + " is due today"
+        event.add(
+            'description').value = "Today is the due date for a Statement of Use or the fifth request for extension for the mark " + \
+                                   data['mark'] + "  with serial number " + data[
+                                       'serial_number'] + " since the USPTO provided notice that ~" + data[
+                                       'status'] + "~  was provided on the date " + data[
+                                       'status_date'] + "\n \nInformation about " + \
+                                   data['mark'] + " \n ~Notice of allowance first issued on: " + data[
+                                       'allowance_date'] + " \n ~Current Status: " + data[
+                                       'status'] + "\n ~Class(es): " + data[
+                                       'international_classes'] + "\n ~Goods and Service: " + data[
+                                       'for_'] + "\n ~Client: " + data['owner_name']
+        event.add(
+            'location').value = "https://tsdr.uspto.gov/#caseNumber=" + serial_number_string + "&caseSearchType=US_APPLICATION&caseType=DEFAULT&searchType=statusSearch"
+
+        cal.add(event)
+
+    if 'fifth request for extension of time' in data['status']:
+        datetime_str = data['allowance_date']
+        datetime_object = datetime.strptime(datetime_str, '%b %d, %Y') + relativedelta(months=24)
+
+        event = vobject.newFromBehavior('vevent')
+
+        event.add('dtstart').value = datetime_object
+        event.add('summary').value = "A Statement of Use for the mark " + \
+                               data['mark'] + "  with serial number: " + data['serial_number'] + " is due today - there are no further extensions available"
+        event.add(
+            'description').value = "Today is the due date for a Statement of Use for the mark " + \
+                                   data['mark'] + "  with serial number " + data[
+                                       'serial_number'] + " since the USPTO provided notice that ~" + data[
+                                       'status'] + "~  was provided on the date " + data[
+                                       'status_date'] + "\n \nInformation about " + \
+                                   data['mark'] + " \n ~Notice of allowance first issued on: " + data[
+                                       'allowance_date'] + " \n ~Current Status: " + data[
+                                       'status'] + "\n ~Class(es): " + data[
+                                       'international_classes'] + "\n ~Goods and Service: " + data[
+                                       'for_'] + "\n ~Client: " + data['owner_name']
+        event.add(
+            'location').value = "https://tsdr.uspto.gov/#caseNumber=" + serial_number_string + "&caseSearchType=US_APPLICATION&caseType=DEFAULT&searchType=statusSearch"
+
+        cal.add(event)
 
     print(data)
     data_list.append(data)
@@ -240,6 +470,5 @@ for index,row in df.iterrows():
 
 workbook.close()
 
-#f = open('trademarks.ics', 'wb')
-#f.write(cal.to_ical())
-#f.close()
+with open ('trademarks.ics', 'w') as fh:
+        fh.write(cal.serialize())
